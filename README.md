@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -6,6 +7,11 @@
 <style>
   body {
     margin: 0;
+    font-family: Georgia, "Times New Roman", serif;
+    background: #fafafa;
+    color: #111;
+    display: flex;
+    flex-direction: column;
 @@ -14,11 +14,17 @@
     align-items: center;
     padding: 40px 20px;
@@ -15,18 +21,18 @@
   h1 {
     margin-bottom: 10px;
     font-size: 2rem;
-  }
-  p {
-    color: #555;
-    margin-bottom: 30px;
+@@ -24,29 +22,41 @@
   }
 
   .controls {
+    display: none; /* Hidden until unlocked */
     display: flex;
     display: none; /* hidden until password unlock */
     flex-direction: column;
     align-items: center;
     background: white;
+    padding: 20px;
+    border-radius: 10px;
 @@ -27,250 +33,232 @@
     box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     margin-bottom: 40px;
@@ -60,8 +66,7 @@
   input[type="file"] {
     margin: 10px 0;
   }
-
-  button {
+@@ -55,25 +65,27 @@
     background: black;
     color: white;
     border: none;
@@ -70,6 +75,7 @@
     border-radius: 6px;
     cursor: pointer;
     font-family: Georgia, "Times New Roman", serif;
+    margin: 5px;
   }
   button.secondary { background:#555; }
   button:hover { opacity:0.9; }
@@ -89,9 +95,7 @@
   .card {
     background: white;
     border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.1);
-    display: flex;
+@@ -83,29 +95,27 @@
     flex-direction: column;
   }
 
@@ -119,10 +123,7 @@
   .delete-btn {
     background: #e74c3c;
     color: white;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 4px;
-    cursor: pointer;
+@@ -116,11 +126,9 @@
     font-size: 0.8rem;
     margin-top: 10px;
   }
@@ -132,9 +133,7 @@
   #login {
     background: white;
     padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    margin-bottom: 40px;
+@@ -130,48 +138,140 @@
     text-align: center;
   }
 
@@ -149,6 +148,12 @@
     border-radius: 6px;
   }
 
+  #logoutBtn {
+    background: #b33a3a;
+  }
+  #logoutBtn:hover {
+    background: #922d2d;
+  }
   .delete-btn { background: #e74c3c; color: white; border: none; padding: 5px 10px;
     border-radius: 4px; cursor: pointer; font-size: 0.8rem; margin-top: 10px; }
 </style>
@@ -167,13 +172,13 @@
   <input type="file" id="imageInput" accept="image/*">
   <textarea id="textInput" placeholder="Write your vanity thought here..."></textarea>
   <button id="saveBtn">Save Card</button>
+  <button id="logoutBtn">Lock / Logout</button>
 </div>
 
 <div class="controls" id="controls"></div>
 <div class="gallery" id="gallery"></div>
 
 <script>
-const repoURL = "https://raw.githubusercontent.com/thebiggestdd/jysas_life_listt/refs/heads/main/cards.json";
 /* ==================== CONFIG ==================== */
 /* Change this to your actual password (keep it secret). */
 const PASSWORD = "OnlyTheRealDKnows"; // ← SET YOUR PASSWORD HERE
@@ -247,6 +252,7 @@ function tryUnlock(fromPrompt=false, providedValue=null) {
 }
   const storageKey = "vanity_gallery_cards";
   const accessKey = "vanity_gallery_access";
+  const ADMIN_PASSWORD = "OnlytheRealDKnows"; // 👈 change this to your own password
   const ADMIN_PASSWORD = "OnlytheRealDKnows"; // 👈 change this to your password
 
 // Lock editing
@@ -276,12 +282,12 @@ function saveCard() {
   let cards = JSON.parse(localStorage.getItem(storageKey)) || [];
   const gallery = document.getElementById("gallery");
   const saveBtn = document.getElementById("saveBtn");
-  const imageInput = document.getElementById("imageInput");
-  const textInput = document.getElementById("textInput");
-  const controls = document.getElementById("controls");
+@@ -181,39 +281,60 @@
   const loginDiv = document.getElementById("login");
   const loginBtn = document.getElementById("loginBtn");
   const passwordInput = document.getElementById("passwordInput");
+  const logoutBtn = document.getElementById("logoutBtn");
+  // 🔐 Login handler
   // Login handler
   loginBtn.onclick = () => {
     if (passwordInput.value === ADMIN_PASSWORD) {
@@ -290,9 +296,17 @@ function saveCard() {
       controls.style.display = "flex";
       renderCards();
     } else {
+      alert("Wrong password. Access denied, pretender of D.");
       alert("Wrong password, mortal.");
     }
   };
+  // 🔒 Logout handler
+  logoutBtn.onclick = () => {
+    localStorage.removeItem(accessKey);
+    alert("Locked! Only the chosen D can unlock again.");
+    location.reload();
+  };
+  // Auto-login check
   if (file) reader.readAsDataURL(file);
   else reader.onload();
 }
@@ -339,8 +353,7 @@ function renderCards() {
     const reader = new FileReader();
     reader.onload = function (e) {
       const imageData = file ? e.target.result : null;
-      const newCard = {
-        image: imageData,
+@@ -222,26 +343,64 @@
         text: text,
         date: new Date().toISOString()
       };
@@ -405,26 +418,14 @@ renderCards();
     cards.slice().reverse().forEach((card, i) => {
       const div = document.createElement("div");
       div.className = "card";
-      div.innerHTML = `
-        ${card.image ? `<img src="${card.image}" alt="Vanity Image">` : ""}
-        <div class="card-content">
-          <p>${escapeHtml(card.text)}</p>
-          <div class="date">${new Date(card.date).toLocaleString()}</div>
-          ${isOwner ? `<button class="delete-btn" data-index="${cards.length - 1 - i}">Delete</button>` : ""}
-        </div>
+@@ -255,7 +414,6 @@
       `;
       gallery.appendChild(div);
     });
     if (isOwner) {
       document.querySelectorAll(".delete-btn").forEach(btn => {
         btn.onclick = () => {
-          const idx = btn.dataset.index;
-          if (confirm("Delete this card?")) {
-            cards.splice(idx, 1);
-            localStorage.setItem(storageKey, JSON.stringify(cards));
-            renderCards();
-          }
-        };
+@@ -269,15 +427,12 @@
       });
     }
   }
@@ -437,3 +438,4 @@ renderCards();
 </script>
 
 </body>
+</html>
