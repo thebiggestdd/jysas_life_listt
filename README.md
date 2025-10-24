@@ -24,7 +24,7 @@
   }
 
   .controls {
-    display: none; /* hidden until password unlock */
+    display: none; /* Hidden until unlocked */
     flex-direction: column;
     align-items: center;
     background: white;
@@ -59,6 +59,7 @@
     border-radius: 6px;
     cursor: pointer;
     font-family: Georgia, "Times New Roman", serif;
+    margin: 5px;
   }
 
   button:hover {
@@ -136,6 +137,14 @@
     border-radius: 6px;
   }
 
+  #logoutBtn {
+    background: #b33a3a;
+  }
+
+  #logoutBtn:hover {
+    background: #922d2d;
+  }
+
 </style>
 </head>
 <body>
@@ -153,6 +162,7 @@
   <input type="file" id="imageInput" accept="image/*">
   <textarea id="textInput" placeholder="Write your vanity thought here..."></textarea>
   <button id="saveBtn">Save Card</button>
+  <button id="logoutBtn">Lock / Logout</button>
 </div>
 
 <div class="gallery" id="gallery"></div>
@@ -160,7 +170,7 @@
 <script>
   const storageKey = "vanity_gallery_cards";
   const accessKey = "vanity_gallery_access";
-  const ADMIN_PASSWORD = "OnlytheRealDKnows"; // 👈 change this to your password
+  const ADMIN_PASSWORD = "OnlytheRealDKnows"; // 👈 change this to your own password
 
   let cards = JSON.parse(localStorage.getItem(storageKey)) || [];
   const gallery = document.getElementById("gallery");
@@ -171,8 +181,9 @@
   const loginDiv = document.getElementById("login");
   const loginBtn = document.getElementById("loginBtn");
   const passwordInput = document.getElementById("passwordInput");
+  const logoutBtn = document.getElementById("logoutBtn");
 
-  // Login handler
+  // 🔐 Login handler
   loginBtn.onclick = () => {
     if (passwordInput.value === ADMIN_PASSWORD) {
       localStorage.setItem(accessKey, "granted");
@@ -180,11 +191,18 @@
       controls.style.display = "flex";
       renderCards();
     } else {
-      alert("Wrong password, mortal.");
+      alert("Wrong password. Access denied, pretender of D.");
     }
   };
 
-  // If previously logged in
+  // 🔒 Logout handler
+  logoutBtn.onclick = () => {
+    localStorage.removeItem(accessKey);
+    alert("Locked! Only the chosen D can unlock again.");
+    location.reload();
+  };
+
+  // Auto-login check
   if (localStorage.getItem(accessKey) === "granted") {
     loginDiv.style.display = "none";
     controls.style.display = "flex";
