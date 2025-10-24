@@ -173,6 +173,7 @@
 <div class="gallery" id="gallery"></div>
 
 <script>
+const repoURL = "https://raw.githubusercontent.com/thebiggestdd/jysas_life_listt/refs/heads/main/cards.json";
 /* ==================== CONFIG ==================== */
 /* Change this to your actual password (keep it secret). */
 const PASSWORD = "OnlyTheRealDKnows"; // ← SET YOUR PASSWORD HERE
